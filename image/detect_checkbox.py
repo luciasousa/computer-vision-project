@@ -2,7 +2,7 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 
-image=cv2.imread('../Automatic_correction_image/test1.png')
+image=cv2.imread('../Automatic_correction_image/test2.png')
 
 ### binarising image
 gray_scale=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -42,10 +42,12 @@ ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, 
 for x,y,w,h,area in stats[2:]:
     cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
     #plot each rectangle
+    '''
     rectangle = image[y:y+h,x:x+w]
     plt.figure(figsize=(1,1))
     plt.imshow(rectangle)
     plt.show()
+    '''
     
 
 cv2.imshow('image',image)
