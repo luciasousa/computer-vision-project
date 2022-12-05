@@ -5,7 +5,7 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-frame = cv2.imread("../Automatic_correction_image/aruco4.png")
+frame = cv2.imread("../Automatic_correction_image/aruco2_x.png")
 
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
@@ -47,7 +47,7 @@ for i in range(len(corners)):
 
 ## binarising image
 gray_scale=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-th1,img_bin = cv2.threshold(gray_scale,150,225,cv2.THRESH_BINARY)
+th1,img_bin = cv2.threshold(gray_scale,220,225,cv2.THRESH_BINARY)
 
 
 
@@ -81,18 +81,34 @@ img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
 
 ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
 
+edges = cv2.Canny(img_bin_final,1,128)
+cv2.imshow("Image edges", edges)
+
+
+#contours
+contours, hierarchy = cv2.findContours(img_bin_final, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+cv2.drawContours(frame, contours, -1, (0,255,0), 3)
+
+#show contours
+cv2.imshow("Image contours", frame)
+
+
+img_x = cv2.imread('../Automatic_correction_image/x.png',0)
+edges = cv2.Canny(img_x,100,200)
+cv2.imshow("Image x edges", edges)
+
+'''
 ### skipping first two stats as background
 for x,y,w,h,area in stats[2:]:
     # x cresce para a direita e o y para baixo
     if x>=x1 and x<=x2 and y>=y1 and y<=y3:
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
-        '''
         rectangle = frame[y:y+h,x:x+w]
         plt.figure(figsize=(1,1))
         plt.imshow(rectangle)
         plt.show()
-        '''
         
+'''  
 
 cv2.imshow("Image", frame)
         
