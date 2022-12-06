@@ -1,11 +1,65 @@
 import argparse
+from ast import fix_missing_locations
 import imutils
 import cv2
 import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-frame = cv2.imread("../Automatic_correction_image/aruco2_x.png")
+frame = cv2.imread("../Automatic_correction_image/diag.png")
+
+#edges and contours
+edges = cv2.Canny(frame,100,200)
+cv2.imshow("canny edges",edges)
+
+
+img_grey = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+#set a thresh
+thresh = 100
+#get threshold image
+ret,thresh_img = cv2.threshold(img_grey, thresh, 255, cv2.THRESH_BINARY)
+#find contours
+contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+
+#create an empty image for contours
+img_contours = np.zeros(frame.shape)
+# draw the contours on the empty image
+cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
+#number of contours
+print("Number of contours with x = " + str(len(contours)))
+
+
+#show the image with the drawn contours
+cv2.imshow("img contours",img_contours)
+
+
+
+#img without x
+
+img_without_x = cv2.imread("../Automatic_correction_image/diag2.png")
+
+img_grey = cv2.cvtColor(img_without_x,cv2.COLOR_BGR2GRAY)
+#set a thresh
+thresh = 100
+#get threshold image
+ret,thresh_img = cv2.threshold(img_grey, thresh, 255, cv2.THRESH_BINARY)
+#find contours
+contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+
+#create an empty image for contours
+img_contours = np.zeros(img_without_x.shape)
+# draw the contours on the empty image
+cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
+#number of contours
+print("Number of contours without x = " + str(len(contours)))
+
+
+#show the image with the drawn contours
+cv2.imshow("img contours without x",img_contours)
+
+#contours
 
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
