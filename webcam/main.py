@@ -29,10 +29,10 @@ while True:
             cv2.line(frame, tuple(c[1].astype('int32')), tuple(c[2].astype('int32')), (255,0,255), 5)
             cv2.line(frame, tuple(c[2].astype('int32')), tuple(c[3].astype('int32')), (255,0,255), 5)
             cv2.line(frame, tuple(c[3].astype('int32')), tuple(c[0].astype('int32')), (255,0,255), 5)
-            cv2.putText(frame, str(c[0]), tuple(c[0].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-            cv2.putText(frame, str(c[1]), tuple(c[1].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-            cv2.putText(frame, str(c[2]), tuple(c[2].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-            cv2.putText(frame, str(c[3]), tuple(c[3].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
+            #cv2.putText(frame, str(c[0]), tuple(c[0].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
+            #cv2.putText(frame, str(c[1]), tuple(c[1].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
+            #cv2.putText(frame, str(c[2]), tuple(c[2].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
+            #cv2.putText(frame, str(c[3]), tuple(c[3].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
 
             #draw circle in left down corner of the marker with the id number equal to 1
             if ids[i] == 1:
@@ -82,8 +82,10 @@ while True:
         '''
 
         ## binarising image
+        #adaptative thresholding
         gray_scale=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
         th1,img_bin = cv2.threshold(gray_scale,150,225,cv2.THRESH_BINARY)
+        #img_bin = cv2.adaptiveThreshold(gray_scale,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
 
         lineWidth = 7
         lineMinWidth = 55
@@ -107,18 +109,34 @@ while True:
             img[img<127]=0
             return img
 
+
         img_bin_final = fix(fix(img_bin_h)|fix(img_bin_v))
         finalKernel = np.ones((5,5), np.uint8)
         img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
 
         ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
 
-        for x,y,w,h,area in stats[2:]:
-            if x>=x1 and x<=x2 and y>=y1 and y<=y3:
-                cv2.rectangle(dst,(x,y),(x+w,y+h),(0,255,0),2)
+        
 
-        cv2.imshow("Image", frame)
-        cv2.imshow("Perspective correction", dst)
+        for x,y,w,h,area in stats[2:]:
+           # if x>=x1 and x<=x2 and y>=y1 and y<=y3:
+            cv2.imshow("Image", frame)
+            cv2.imshow("Perspective correction with adaptative thresholding", img_bin)
+            cv2.rectangle(img_bin,(x,y),(x+w,y+h),(0,255,0),2)
+            rectangle = img_bin[y:y+h,x:x+w]
+            #contours
+            contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
+            print("Number of contours = " + str(len(contours)))
+            #show contours
+            
+            cv2.imshow("Image contours", rectangle)
+            cv2.waitKey(0)  
+            '''
+                
+                plt.figure(figsize=(1,1))
+                plt.imshow(rectangle)
+                plt.show()'''
         
 
     cv2.imshow("Image", frame)
