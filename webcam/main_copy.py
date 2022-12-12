@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 cam = cv2.VideoCapture(0)
-flag = 0
+image_global = None
 while True:
     ret, frame = cam.read()
     if not ret:
@@ -29,11 +29,7 @@ while True:
             cv2.line(frame, tuple(c[1].astype('int32')), tuple(c[2].astype('int32')), (255,0,255), 5)
             cv2.line(frame, tuple(c[2].astype('int32')), tuple(c[3].astype('int32')), (255,0,255), 5)
             cv2.line(frame, tuple(c[3].astype('int32')), tuple(c[0].astype('int32')), (255,0,255), 5)
-            #cv2.putText(frame, str(c[0]), tuple(c[0].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-            #cv2.putText(frame, str(c[1]), tuple(c[1].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-            #cv2.putText(frame, str(c[2]), tuple(c[2].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-            #cv2.putText(frame, str(c[3]), tuple(c[3].astype('int32')), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
-
+            
             #draw circle in left down corner of the marker with the id number equal to 1
             if ids[i] == 1:
                 cv2.circle(frame, tuple(c[3].astype('int32')), 5, (255,0,0), -1)
@@ -115,34 +111,37 @@ while True:
         img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
 
         ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
-        count_rect = 0
-        for x,y,w,h,area in stats[2:]:
-           # if x>=x1 and x<=x2 and y>=y1 and y<=y3:
-            count_rect += 1
-            cv2.rectangle(img_bin,(x,y),(x+w,y+h),(0,255,0),2)
-            rectangle = img_bin[y:y+h,x:x+w]
-            #contours
-            contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
-            if (len(contours) == 4):
-                print("Number of rectangle = " + str(count_rect))
-                print("Number of contours = " + str(len(contours)))
-                #draw small circle in the center of the rectangle
-                cv2.circle(dst, (int(w/2),int(h/2)), 5, (255,0,0), -1)
-            if (len(contours) == 0):
-                print("Number of rectangle = " + str(count_rect))
-                print("Number of contours = " + str(len(contours)))
-                #draw small circle in the center of the rectangle
-                cv2.circle(dst, (int(w/2),int(h/2)), 5, (0,0,255), -1)
-            if count_rect ==210:
-                flag=1
-                break
+        cv2.imshow("Image", frame)
+        cv2.imshow("Perspective correction with adaptative thresholding", img_bin)
+        
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            image_global = img_bin
+            break
+        
+
     cv2.imshow("Image", frame)
-    cv2.imshow("Perspective correction with adaptative thresholding", img_bin)
-    cv2.imshow("Dest", dst)
-    #save image
-    cv2.imwrite("dst.jpg", dst)
     key = cv2.waitKey(1) & 0xFF
-    if key == ord("q") or flag==1:
+    if key == ord("q"):
         break
             
+cv2.imshow("Image Global", image_global)
+
+for x,y,w,h,area in stats[2:]:
+    # if x>=x1 and x<=x2 and y>=y1 and y<=y3:
+    
+    cv2.rectangle(img_bin,(x,y),(x+w,y+h),(0,255,0),2)
+    rectangle = img_bin[y:y+h,x:x+w]
+    #contours
+    contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
+    print("Number of contours = " + str(len(contours)))
+    #show contours
+    
+    cv2.imshow("Image contours", rectangle)
+    cv2.waitKey(0)  
+    '''
+        
+        plt.figure(figsize=(1,1))
+        plt.imshow(rectangle)
+        plt.show()'''
