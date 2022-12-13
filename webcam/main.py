@@ -68,24 +68,24 @@ while True:
         dst = cv2.warpPerspective(frame,M,(500,500))
 
         #histogram equalization
-        '''
+        """
         dst = cv2.cvtColor(dst, cv2.COLOR_BGR2YUV)
         dst[:,:,0] = cv2.equalizeHist(dst[:,:,0])
         dst = cv2.cvtColor(dst, cv2.COLOR_YUV2BGR)
-        '''
+        """
 
         #contrast stretching
-        '''
+        """
         dst = cv2.cvtColor(dst, cv2.COLOR_BGR2YUV)
         dst[:,:,0] = cv2.normalize(dst[:,:,0], None, 0, 255, cv2.NORM_MINMAX)
         dst = cv2.cvtColor(dst, cv2.COLOR_YUV2BGR)
-        '''
+        """
 
         ## binarising image
         #adaptative thresholding
         gray_scale=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
         th1,img_bin = cv2.threshold(gray_scale,150,225,cv2.THRESH_BINARY)
-        #img_bin = cv2.adaptiveThreshold(gray_scale,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
+        #img_bin = cv2.adaptiveThreshold(gray_scale,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
 
         lineWidth = 7
         lineMinWidth = 55
@@ -113,30 +113,66 @@ while True:
         img_bin_final = fix(fix(img_bin_h)|fix(img_bin_v))
         finalKernel = np.ones((5,5), np.uint8)
         img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
-
+        coordinates_rectangles=[]
         ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
         count_rect = 0
         for x,y,w,h,area in stats[2:]:
-           # if x>=x1 and x<=x2 and y>=y1 and y<=y3:
             count_rect += 1
-            cv2.rectangle(img_bin,(x,y),(x+w,y+h),(0,255,0),2)
-            rectangle = img_bin[y:y+h,x:x+w]
-            #contours
-            contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
-            if (len(contours) == 4):
-                print("Number of rectangle = " + str(count_rect))
-                print("Number of contours = " + str(len(contours)))
-                #draw small circle in the center of the rectangle
-                cv2.circle(dst, (int(w/2),int(h/2)), 5, (255,0,0), -1)
-            if (len(contours) == 0):
-                print("Number of rectangle = " + str(count_rect))
-                print("Number of contours = " + str(len(contours)))
-                #draw small circle in the center of the rectangle
-                cv2.circle(dst, (int(w/2),int(h/2)), 5, (0,0,255), -1)
-            if count_rect ==210:
+            cv2.rectangle(dst,(x,y),(x+w,y+h),(0,255,0),2)
+            coordinates_rectangles.append([y, y+h,x, x+w])
+        #print(coordinates_rectangles)
+        print("Number of rectangles = " + str(count_rect))
+        if count_rect == 224: #210
+            #sort rectangles by x and y coordinates
+            #coordinates_rectangles.sort(key=lambda x: x[0])
+            #coordinates_rectangles.sort(key=lambda x: x[2])
+            #print(coordinates_rectangles)
+            #iterate over all rectangles by coordinates
+            for x,y,w,h,area in stats[2:]:
+                rectangle = img_bin[y:y+h,x:x+w]
+                #contours
+                contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
                 flag=1
-                break
+                if (len(contours) == 4): #if has x
+                    print("rectangle 4 = " + str(x) + ' ' + str(y))
+                    print("Number of contours = " + str(len(contours)))
+                    #draw small circle in the center of the rectangle
+                    cv2.circle(dst, (int(w/2),int(h/2)), 5, (255,0,0), -1)
+                    cv2.imshow("contours", rectangle)
+                    cv2.waitKey(0)
+                if (len(contours) == 0): #if the rectangle is black
+                    print("rectangle 0 = " + str(x) + ' ' + str(y))
+                    print("Number of contours = " + str(len(contours)))
+                    #draw small circle in the center of the rectangle
+                    cv2.circle(dst, (int(w/2),int(h/2)), 5, (0,0,255), -1)
+                    cv2.imshow("contours", rectangle)
+                    cv2.waitKey(0)
+
+                
+                
+            '''
+            #iterate over all rectangles
+            for x,y,w,h,area in stats[2:]:
+                rectangle = img_bin[y:y+h,x:x+w]
+                #contours
+                contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
+                flag=1
+                if (len(contours) == 4):
+                    print("Number of rectangle = " + str(count_rect))
+                    print("Number of contours = " + str(len(contours)))
+                    #draw small circle in the center of the rectangle
+                    cv2.circle(dst, (int(w/2),int(h/2)), 5, (255,0,0), -1)
+                if (len(contours) == 0):
+                    print("Number of rectangle = " + str(count_rect))
+                    print("Number of contours = " + str(len(contours)))
+                    #draw small circle in the center of the rectangle
+                    cv2.circle(dst, (int(w/2),int(h/2)), 5, (0,0,255), -1)
+            '''
+            
+        
+            
     cv2.imshow("Image", frame)
     cv2.imshow("Perspective correction with adaptative thresholding", img_bin)
     cv2.imshow("Dest", dst)
@@ -145,4 +181,6 @@ while True:
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q") or flag==1:
         break
-            
+
+cv2.destroyAllWindows()
+cam.release()
