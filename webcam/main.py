@@ -83,7 +83,18 @@ while True:
 
         ## binarising image
         #adaptative thresholding
+
+        lineWidth = 7
+        lineMinWidth = 55
+        #kernal1 = np.ones((lineWidth,lineWidth), np.uint8)
         gray_scale=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
+        #se=cv2.getStructuringElement(cv2.MORPH_RECT , (8,8))
+        #bg=cv2.morphologyEx(gray_scale, cv2.MORPH_DILATE, se)
+        #out_gray=cv2.divide(gray_scale, bg, scale=255)
+        #img_bin=cv2.threshold(gray_scale, 0, 255, cv2.THRESH_OTSU )[1] 
+
+        #dilate image
+        #gray_scale_dil = cv2.erode(gray_scale, kernal1, iterations=1)
         th1,img_bin = cv2.threshold(gray_scale,150,225,cv2.THRESH_BINARY)
         #img_bin = cv2.adaptiveThreshold(gray_scale,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
 
@@ -113,6 +124,9 @@ while True:
         img_bin_final = fix(fix(img_bin_h)|fix(img_bin_v))
         finalKernel = np.ones((5,5), np.uint8)
         img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
+        cv2.imshow("Image bin final dilate" , img_bin_final)
+        img_bin_final=cv2.erode(img_bin_final,finalKernel,iterations=1)
+        cv2.imshow("Image bin final erode", img_bin_final)
         coordinates_rectangles=[]
         ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
         count_rect = 0
@@ -132,22 +146,25 @@ while True:
                 rectangle = img_bin[y:y+h,x:x+w]
                 #contours
                 contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
+                #cv2.drawContours(rectangle, contours, -1, (0,255,0), 3)
                 flag=1
                 if (len(contours) == 4): #if has x
                     print("rectangle 4 = " + str(x) + ' ' + str(y))
                     print("Number of contours = " + str(len(contours)))
                     #draw small circle in the center of the rectangle
-                    cv2.circle(dst, (int(w/2),int(h/2)), 5, (255,0,0), -1)
+                    cv2.circle(dst, (x, y), 5, (255,0,0), -1)
+
                     cv2.imshow("contours", rectangle)
                     cv2.waitKey(0)
+                
                 if (len(contours) == 0): #if the rectangle is black
                     print("rectangle 0 = " + str(x) + ' ' + str(y))
                     print("Number of contours = " + str(len(contours)))
                     #draw small circle in the center of the rectangle
-                    cv2.circle(dst, (int(w/2),int(h/2)), 5, (0,0,255), -1)
+                    cv2.circle(dst, (x, y), 5, (0,0,255), -1)
                     cv2.imshow("contours", rectangle)
                     cv2.waitKey(0)
+                
 
                 
                 
