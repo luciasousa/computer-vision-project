@@ -1,4 +1,4 @@
-#detetc Aruco markers with webcam
+#programa que lê os rectângulos (224) vê os pixeis e guarda imagem
 import argparse
 import imutils
 import cv2
