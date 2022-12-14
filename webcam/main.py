@@ -142,7 +142,10 @@ while True:
             #coordinates_rectangles.sort(key=lambda x: x[2])
             #print(coordinates_rectangles)
             #iterate over all rectangles by coordinates
+            #save image
+            #cv2.imwrite("image_test.jpg", img_bin)
             for x,y,w,h,area in stats[2:]:
+                
                 rectangle = img_bin[y:y+h,x:x+w]
                 #contours
                 contours, hierarchy = cv2.findContours(rectangle, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -164,6 +167,8 @@ while True:
                     cv2.circle(dst, (x, y), 5, (0,0,255), -1)
                     cv2.imshow("contours", rectangle)
                     cv2.waitKey(0)
+
+                
                 
 
                 
@@ -194,7 +199,6 @@ while True:
     cv2.imshow("Perspective correction with adaptative thresholding", img_bin)
     cv2.imshow("Dest", dst)
     #save image
-    cv2.imwrite("dst.jpg", dst)
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q") or flag==1:
         break
