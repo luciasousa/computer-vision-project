@@ -5,7 +5,7 @@ import cv2
 import sys
 from matplotlib import pyplot as plt
 import numpy as np
-
+'''
 cam = cv2.VideoCapture(0)
 
 while True:
@@ -61,6 +61,7 @@ while True:
 
 cam.release()
 cv2.destroyAllWindows()
+'''
 
 dst_final = cv2.imread('photo_test_image.jpg')
 
@@ -97,10 +98,16 @@ img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
 coordinates_rectangles=[]
 ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
 count_rect = 0
+ss_count = 0
+percentage_blk=0
+percentage_wht=0
+#matrix with 15 rows and 15 columns
+matrix = [[0 for x in range(15)] for y in range(15)]
+
 for x,y,w,h,area in stats[2:]:
+    ss_count += 1
     count_rect += 1
     cv2.rectangle(dst_final,(x,y),(x+w,y+h),(0,255,0),2)
-    coordinates_rectangles.append([y, y+h,x, x+w])
     rectangle = img_bin[y:y+h,x:x+w]
     count_pixels_blk = 0
     count_pixels_wht = 0
@@ -115,9 +122,27 @@ for x,y,w,h,area in stats[2:]:
                 count_pixels_wht += 1
     percentage_blk = (count_pixels_blk/count_pixels)*100
     percentage_wht = (count_pixels_wht/count_pixels)*100
-    if percentage_blk > 10 and percentage_wht > 30:
-         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
-    if percentage_blk > 70:
-        cv2.circle(dst_final, (x, y), 5, (0,0,255), -1)
+    coordinates_rectangles.append([y, y+h,x, x+w, percentage_blk, percentage_wht])
 
+
+
+#sort coordinates by x and y
+coordinates_rectangles.sort(key=lambda x: x[0])
+coordinates_rectangles.sort(key=lambda x: x[2])
+for i in coordinates_rectangles:
+    y = i[0]
+    x = i[2]
+    percentage_blk = i[4]
+    percentage_wht = i[5]
+
+    if percentage_blk > 15 and percentage_wht > 30: #has an x
+        cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
+        #print("x: ", x, "y: ", y, "percentage_blk: ", percentage_blk, "percentage_wht: ", percentage_wht)
+    if percentage_blk > 70: 
+        cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
+        #print("x: ", x, "y: ", y, "percentage_blk: ", percentage_blk, "percentage_wht: ", percentage_wht)
+    
+#print matrix row by row
+for row in matrix:
+    print(row)
 cv2.imwrite("photo_final_dst.jpg", dst_final)
