@@ -5,7 +5,124 @@ import cv2
 import sys
 from matplotlib import pyplot as plt
 import numpy as np
-'''
+
+
+def init_matrix(matrix):
+    #first row of matrix is None,a,b,c,d,None,a,b,c,d,None,a,b,c,d
+    matrix[0][0] = None
+    matrix[0][1] = 'a'
+    matrix[0][2] = 'b'
+    matrix[0][3] = 'c'
+    matrix[0][4] = 'd'
+    matrix[0][5] = None
+    matrix[0][6] = 'a'
+    matrix[0][7] = 'b'
+    matrix[0][8] = 'c'
+    matrix[0][9] = 'd'
+    matrix[0][10] = None
+    matrix[0][11] = 'a'
+    matrix[0][12] = 'b'
+    matrix[0][13] = 'c'
+    matrix[0][14] = 'd'
+
+    #first column of matrix is None,1,2,3,4,5,6,7,8,9,10,11,12,13,14
+    matrix[1][0] = 1
+    matrix[2][0] = 2
+    matrix[3][0] = 3
+    matrix[4][0] = 4
+    matrix[5][0] = 5
+    matrix[6][0] = 6
+    matrix[7][0] = 7
+    matrix[8][0] = 8
+    matrix[9][0] = 9
+    matrix[10][0] = 10
+    matrix[11][0] = 11
+    matrix[12][0] = 12
+    matrix[13][0] = 13
+    matrix[14][0] = 14
+
+    #sixt column of matrix is None,15,16,17,18,19,20,21,22,23,24,25,26,27,28
+    matrix[1][5] = 15
+    matrix[2][5] = 16
+    matrix[3][5] = 17
+    matrix[4][5] = 18
+    matrix[5][5] = 19
+    matrix[6][5] = 20
+    matrix[7][5] = 21
+    matrix[8][5] = 22
+    matrix[9][5] = 23
+    matrix[10][5] = 24
+    matrix[11][5] = 25
+    matrix[12][5] = 26
+    matrix[13][5] = 27
+    matrix[14][5] = 28
+
+    #eleven column of matrix is None,29,30,31,32,33,34,35,36,37,38,39,40,41,42
+    matrix[1][10] = 29
+    matrix[2][10] = 30
+    matrix[3][10] = 31
+    matrix[4][10] = 32
+    matrix[5][10] = 33
+    matrix[6][10] = 34
+    matrix[7][10] = 35
+    matrix[8][10] = 36
+    matrix[9][10] = 37
+    matrix[10][10] = 38
+    matrix[11][10] = 39
+    matrix[12][10] = 40
+    matrix[13][10] = 41
+    matrix[14][10] = 42
+
+    return matrix
+
+def map_coordinates_x(coordinates_rectangles):
+
+    mapx = 0
+    mapx_list = []
+    x0=coordinates_rectangles[0][0]
+    x_velho = []
+    for i in coordinates_rectangles:
+        x= i[0]
+        y=i[1]
+        w=i[2]
+        h=i[3] 
+        tempx = x-x0
+        x_velho_aux=[x,mapx]
+        if tempx > w:
+            x0 = x
+            mapx_list.append(mapx)
+            mapx += 1
+            x_velho_aux=[x,mapx]
+        x_velho.append(x_velho_aux)
+   # print(x_velho)
+    return mapx_list,x_velho
+
+
+def map_coordinates_y(coordinates_rectangles):
+    #print(coordinates_rectangles)
+    mapy = 0
+    mapy_list = []
+    y0=coordinates_rectangles[0][1]
+    y_velho = []
+    for i in coordinates_rectangles:
+        x= i[0]
+        y=i[1]
+        w=i[2]
+        h=i[3] 
+        y_velho_aux= [y,mapy]
+        #print("x, y, w, h= ",x, y, w, h)
+        
+        tempy = y-y0
+        if tempy > h:
+            y0 = y
+            mapy_list.append(mapy)
+            mapy += 1
+            y_velho_aux=[y,mapy]
+        y_velho.append(y_velho_aux)
+   # print(y_velho)
+    return mapy_list, y_velho
+
+
 cam = cv2.VideoCapture(0)
 
 while True:
@@ -61,7 +178,8 @@ while True:
 
 cam.release()
 cv2.destroyAllWindows()
-'''
+
+
 
 dst_final = cv2.imread('photo_test_image.jpg')
 
@@ -101,6 +219,8 @@ count_rect = 0
 ss_count = 0
 percentage_blk=0
 percentage_wht=0
+list_x = [] #list with x coordinates
+list_y = [] #list with y coordinates
 #matrix with 15 rows and 15 columns
 matrix = [[0 for x in range(15)] for y in range(15)]
 
@@ -122,27 +242,50 @@ for x,y,w,h,area in stats[2:]:
                 count_pixels_wht += 1
     percentage_blk = (count_pixels_blk/count_pixels)*100
     percentage_wht = (count_pixels_wht/count_pixels)*100
-    coordinates_rectangles.append([y, y+h,x, x+w, percentage_blk, percentage_wht])
 
-
+    coordinates_rectangles.append([x, y, w, h, percentage_blk, percentage_wht])
 
 #sort coordinates by x and y
+x_velho=[]
+y_velho=[]
 coordinates_rectangles.sort(key=lambda x: x[0])
-coordinates_rectangles.sort(key=lambda x: x[2])
+
+new_x,x_velho = map_coordinates_x(coordinates_rectangles)
+coordinates_rectangles.sort(key=lambda x: x[1])
+#print(coordinates_rectangles)
+new_y , y_velho= map_coordinates_y(coordinates_rectangles)
+
+print(coordinates_rectangles)
+
+print(new_x)
+print(new_y)
+
+x_novo = 0
+y_novo = 0
+
+
 for i in coordinates_rectangles:
-    y = i[0]
-    x = i[2]
+    x = i[0]
+    y = i[1]
+
+    for x_v in x_velho:
+        if x_v[0] == x:
+            x_novo = x_v[1]
+    for y_v in y_velho:
+        if y_v[0] == y:
+            y_novo = y_v[1]
+    
+    #mapear x e y para valores das colunas e linhas
     percentage_blk = i[4]
     percentage_wht = i[5]
-
     if percentage_blk > 15 and percentage_wht > 30: #has an x
         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
-        #print("x: ", x, "y: ", y, "percentage_blk: ", percentage_blk, "percentage_wht: ", percentage_wht)
-    if percentage_blk > 70: 
+        matrix[y_novo][x_novo] = 1
+    if percentage_blk > 80: 
         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
-        #print("x: ", x, "y: ", y, "percentage_blk: ", percentage_blk, "percentage_wht: ", percentage_wht)
-    
-#print matrix row by row
+
+init_matrix(matrix)
 for row in matrix:
     print(row)
+    
 cv2.imwrite("photo_final_dst.jpg", dst_final)
