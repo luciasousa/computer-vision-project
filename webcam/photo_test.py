@@ -6,7 +6,7 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-
+'''
 def init_matrix(matrix):
     #first row of matrix is None,a,b,c,d,None,a,b,c,d,None,a,b,c,d
     matrix[0][0] = None
@@ -74,6 +74,7 @@ def init_matrix(matrix):
     matrix[14][10] = 42
 
     return matrix
+'''
 
 def map_coordinates_x(coordinates_rectangles):
 
@@ -82,13 +83,14 @@ def map_coordinates_x(coordinates_rectangles):
     x0=coordinates_rectangles[0][0]
     x_velho = []
     for i in coordinates_rectangles:
-        x= i[0]
+        x=i[0]
         y=i[1]
         w=i[2]
         h=i[3] 
         tempx = x-x0
+        #print("w = ", w)
         x_velho_aux=[x,mapx]
-        if tempx > w:
+        if tempx > w and w > 15:
             x0 = x
             mapx_list.append(mapx)
             mapx += 1
@@ -111,7 +113,7 @@ def map_coordinates_y(coordinates_rectangles):
         h=i[3] 
         y_velho_aux= [y,mapy]
         #print("x, y, w, h= ",x, y, w, h)
-        
+        #print("h = ", h)
         tempy = y-y0
         if tempy > h:
             y0 = y
@@ -255,7 +257,7 @@ coordinates_rectangles.sort(key=lambda x: x[1])
 #print(coordinates_rectangles)
 new_y , y_velho= map_coordinates_y(coordinates_rectangles)
 
-print(coordinates_rectangles)
+#print(coordinates_rectangles)
 
 print(new_x)
 print(new_y)
@@ -276,16 +278,151 @@ for i in coordinates_rectangles:
             y_novo = y_v[1]
     
     #mapear x e y para valores das colunas e linhas
+
     percentage_blk = i[4]
     percentage_wht = i[5]
     if percentage_blk > 15 and percentage_wht > 30: #has an x
         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
+        #print("x, y: ", x_novo, y_novo)
         matrix[y_novo][x_novo] = 1
     if percentage_blk > 80: 
         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
 
-init_matrix(matrix)
+#init_matrix(matrix)
 for row in matrix:
     print(row)
     
+
+
 cv2.imwrite("photo_final_dst.jpg", dst_final)
+
+
+#remove first line from matrix
+matrix.pop(0)
+#remove first column from matrix
+for row in matrix:
+    row.pop(0)
+    row.pop(4)
+    row.pop(8)
+
+
+print("matrix pop")
+for row in matrix:
+    print(row)
+
+#create new matrix with 14 rows and 12 columns
+matrix_14_12 = [[0 for x in range(12)] for y in range(14)]
+
+#copy values from matrix to matrix_14_12
+for i in range(14):
+    for j in range(12):
+        matrix_14_12[i][j] = matrix[i][j]
+
+print("matrix_14_12 -----------------------------")
+for row in matrix_14_12:
+    print(row)
+
+col_min = 0
+col_max = 4
+
+count_res = 0
+
+array_answers = [0 for x in range(42)]
+
+for i in range(14):
+    count_res = 0
+    for j in range(col_min, col_max):
+        if matrix_14_12[i][j] == 1:
+            count_res = 1
+            if j == 0:
+                array_answers[i] = 'a'
+            if j == 1: 
+                array_answers[i] = 'b'
+            if j == 2:
+                array_answers[i] = 'c'
+            if j == 3:
+                array_answers[i] = 'd'
+        elif count_res == 0:
+            array_answers[i] = '-'
+
+col_min += 4
+col_max += 4
+
+for i in range(14):
+    i_aux = i
+    count_res = 0
+    i_aux += 14
+    for j in range(col_min, col_max):
+        if matrix_14_12[i][j] == 1:
+            count_res = 1
+            if j == 4:
+                array_answers[i_aux] = 'a'
+            if j == 5: 
+                array_answers[i_aux] = 'b'
+            if j == 6:
+                array_answers[i_aux] = 'c'
+            if j == 7:
+                array_answers[i_aux] = 'd'
+        elif count_res == 0:
+            array_answers[i_aux] = '-'
+
+col_min += 4
+col_max += 4
+
+for i in range(14):
+    i_aux = i
+    count_res = 0
+    i_aux += 28
+    for j in range(col_min, col_max):
+        if matrix_14_12[i][j] == 1:
+            count_res = 1
+            if j == 8:
+                array_answers[i_aux] = 'a'
+            if j == 9: 
+                array_answers[i_aux] = 'b'
+            if j == 10:
+                array_answers[i_aux] = 'c'
+            if j == 11:
+                array_answers[i_aux] = 'd'
+        elif count_res == 0:
+            array_answers[i_aux] = '-'
+
+print(array_answers)
+'''
+#create matrix with 42 rows and 4 columns
+matrix_42_4 = [[0 for x in range(4)] for y in range(42)]
+
+col_min = 0
+col_max = 3
+
+range_i = 14
+
+lines = 0
+lines_aux = 0
+
+for j in range(col_min, col_max):
+    for i in range(14):
+        matrix_42_4[lines][j//3] = matrix_14_12[i][j]
+        lines = i + lines_aux
+    
+    lines_aux += 14
+    col_min = col_min + 4
+    col_max = col_max + 4
+    
+
+#copy values from matrix_14_12 to matrix_42_4
+for i in range(14):
+    for j in range(col_min, col_max):
+        matrix_42_4[lines][j//3] =0# matrix_14_12[i][j]
+        lines += 1
+
+    
+    col_min = col_min + 4
+    col_max = col_max + 4
+    print ("lines, cols: ", lines, col_min, col_max)
+
+
+print("matrix_42_4 -----------------------------")
+for row in matrix_42_4:
+    print(row)
+'''
