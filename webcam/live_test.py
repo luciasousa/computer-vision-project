@@ -67,7 +67,6 @@ while True:
         length = len(ids)
         if length == 4: #meter 4 se nao tiver perguntas v/F
             for i in range(len(corners)):
-                print(ids[i])
                 c = corners[i][0]# c type = numpy.ndarray
                 cv2.line(frame, tuple(c[0].astype('int32')), tuple(c[1].astype('int32')), (255,0,255), 5)
                 cv2.line(frame, tuple(c[1].astype('int32')), tuple(c[2].astype('int32')), (255,0,255), 5)
@@ -184,119 +183,126 @@ while True:
                 percentage_wht = (count_pixels_wht/count_pixels)*100
 
                 coordinates_rectangles.append([x, y, w, h, percentage_blk, percentage_wht])
-
+           
             #sort coordinates by x and y
-            x_velho=[]
-            y_velho=[]
-            coordinates_rectangles.sort(key=lambda x: x[0])
+            if count_rect >220 or count_rect <230: #225
+                x_velho=[]
+                y_velho=[]
+                coordinates_rectangles.sort(key=lambda x: x[0])
 
-            new_x,x_velho = map_coordinates_x(coordinates_rectangles)
-            coordinates_rectangles.sort(key=lambda x: x[1])
-            new_y , y_velho= map_coordinates_y(coordinates_rectangles)
+                new_x,x_velho = map_coordinates_x(coordinates_rectangles)
+                coordinates_rectangles.sort(key=lambda x: x[1])
+                new_y , y_velho= map_coordinates_y(coordinates_rectangles)
 
-            x_novo = 0
-            y_novo = 0
+                x_novo = 0
+                y_novo = 0
 
-            for i in coordinates_rectangles:
-                x = i[0]
-                y = i[1]
+                for i in coordinates_rectangles:
+                    x = i[0]
+                    y = i[1]
 
-                for x_v in x_velho:
-                    if x_v[0] == x:
-                        x_novo = x_v[1]
-                for y_v in y_velho:
-                    if y_v[0] == y:
-                        y_novo = y_v[1]
+                    for x_v in x_velho:
+                        if x_v[0] == x:
+                            x_novo = x_v[1]
+                    for y_v in y_velho:
+                        if y_v[0] == y:
+                            y_novo = y_v[1]
+                    
+                    #mapear x e y para valores das colunas e linhas
+
+                    percentage_blk = i[4]
+                    percentage_wht = i[5]
+                    if percentage_blk > 15 and percentage_wht > 30: #has an x
+                        cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
+                        #print("x, y: ", x_novo, y_novo)
+                        matrix_questions[y_novo][x_novo] = 1
+                    if percentage_blk > 80: 
+                        cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
                 
-                #mapear x e y para valores das colunas e linhas
+                cv2.imwrite("live_exam.jpg",dst_final)
+            
+                cv2.circle(frame, (10,15), 10, (0,255,0), -1)
+                cv2.imwrite("live_correction_exam.jpg",dst_final)
+                print("correction done")
+                
+            
+                #remove first line from matrix
+                matrix_questions.pop(0)
 
-                percentage_blk = i[4]
-                percentage_wht = i[5]
-                if percentage_blk > 15 and percentage_wht > 30: #has an x
-                    cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
-                    #print("x, y: ", x_novo, y_novo)
-                    matrix_questions[y_novo][x_novo] = 1
-                if percentage_blk > 80: 
-                    cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
-
-            cv2.imwrite("photo_final_dst_live.jpg", dst_final)
-            cv2.imshow("correction", dst_final)
-
-
-            #remove first line from matrix
-            matrix_questions.pop(0)
-
-            #remove first column from matrix
-            for row in matrix_questions:
-                r = 0
-                row.pop(r)
-                for i in range(NUMBER_OF_COLUMNS-1):
-                    r +=4
+                #remove first column from matrix
+                for row in matrix_questions:
+                    r = 0
                     row.pop(r)
+                    for i in range(NUMBER_OF_COLUMNS-1):
+                        r +=4
+                        row.pop(r)
 
-            #create new matrix with 14 rows and 12 columns adicionar + NUMBER_OF_COLUMNS_VF*2
-            matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4)] for y in range(NUMBER_OF_LINES)]
+                #create new matrix with 14 rows and 12 columns adicionar + NUMBER_OF_COLUMNS_VF*2
+                matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4)] for y in range(NUMBER_OF_LINES)]
 
-            #copy values from matrix to matrix_14_12 + NUMBER_OF_COLUMNS_VF*2
-            for i in range(NUMBER_OF_LINES):
-                for j in range(NUMBER_OF_COLUMNS*4):
-                    matrix_questions_final[i][j] = matrix_questions[i][j]
-
-            col_min = 0
-            col_max = 4
-
-            count_res = 0
-
-            array_answers = [0 for x in range(NUMBER_OF_QUESTIONS)]
-            array_answers_vf = [0 for x in range(NUMBER_OF_QUESTIONS_VF)]
-            i_aux = 0
-            for i in range(NUMBER_OF_COLUMNS):
+                #copy values from matrix to matrix_14_12 + NUMBER_OF_COLUMNS_VF*2
                 for i in range(NUMBER_OF_LINES):
-                    count_res = 0
-                    for j in range(col_min, col_max):
-                        if matrix_questions_final[i][j] == 1:
-                            count_res = 1
-                            if j%4==0:
-                                array_answers[i_aux] = 'a'
-                            if (j-1)%4==0:
-                                array_answers[i_aux] = 'b'
-                            if (j-2)%4==0:
-                                array_answers[i_aux] = 'c'
-                            if (j-3)%4==0:
-                                array_answers[i_aux] = 'd'
-                        elif count_res == 0:
-                            array_answers[i_aux] = '-'
-                    i_aux += 1
-                    if i_aux == NUMBER_OF_QUESTIONS:
-                        break
-                col_min += 4
-                col_max += 4
+                    for j in range(NUMBER_OF_COLUMNS*4):
+                        matrix_questions_final[i][j] = matrix_questions[i][j]
 
-            '''
-            i_aux = 0
-            for i in range(NUMBER_OF_COLUMNS_VF):
-                for i in range(NUMBER_OF_LINES):
-                    count_res = 0
-                    for j in range(col_min, col_max):
-                        if matrix_questions_final[i][j] == 1:
-                            count_res = 1
-                            if j%2==0:
-                                array_answers_vf[i_aux] = 'v'
-                            else:
-                                array_answers_vf[i_aux] = 'f'
-                        elif count_res == 0:
-                            array_answers[i_aux] = '-'
-                    i_aux += 1
-                    if i_aux == NUMBER_OF_QUESTIONS_VF:
-                        break
-                col_min += 2
-                col_max += 2
+                col_min = 0
+                col_max = 4
 
-            ''' 
+                count_res = 0
 
-            print(array_answers)
-            print(array_answers_vf)
+                array_answers = [0 for x in range(NUMBER_OF_QUESTIONS)]
+                array_answers_vf = [0 for x in range(NUMBER_OF_QUESTIONS_VF)]
+                i_aux = 0
+                for i in range(NUMBER_OF_COLUMNS):
+                    for i in range(NUMBER_OF_LINES):
+                        count_res = 0
+                        for j in range(col_min, col_max):
+                            if matrix_questions_final[i][j] == 1:
+                                count_res = 1
+                                if j%4==0:
+                                    array_answers[i_aux] = 'a'
+                                if (j-1)%4==0:
+                                    array_answers[i_aux] = 'b'
+                                if (j-2)%4==0:
+                                    array_answers[i_aux] = 'c'
+                                if (j-3)%4==0:
+                                    array_answers[i_aux] = 'd'
+                            elif count_res == 0:
+                                array_answers[i_aux] = '-'
+                        i_aux += 1
+                        if i_aux == NUMBER_OF_QUESTIONS:
+                            break
+                    col_min += 4
+                    col_max += 4
 
+                '''
+                i_aux = 0
+                for i in range(NUMBER_OF_COLUMNS_VF):
+                    for i in range(NUMBER_OF_LINES):
+                        count_res = 0
+                        for j in range(col_min, col_max):
+                            if matrix_questions_final[i][j] == 1:
+                                count_res = 1
+                                if j%2==0:
+                                    array_answers_vf[i_aux] = 'v'
+                                else:
+                                    array_answers_vf[i_aux] = 'f'
+                            elif count_res == 0:
+                                array_answers[i_aux] = '-'
+                        i_aux += 1
+                        if i_aux == NUMBER_OF_QUESTIONS_VF:
+                            break
+                    col_min += 2
+                    col_max += 2
+
+                ''' 
+                print(array_answers)
+                print(array_answers_vf)
+
+            else:
+                cv2.circle(frame, (10,15), 10, (255,0,0), -1)
+
+            cv2.imshow("correction", dst_final)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
