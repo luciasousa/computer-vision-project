@@ -6,11 +6,14 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-NUMBER_OF_QUESTIONS = 38
+NUMBER_OF_QUESTIONS = 37
 NUMBER_OF_QUESTIONS_VF = 12
 NUMBER_OF_LINES = 14
 NUMBER_OF_COLUMNS = 3
 NUMBER_OF_COLUMNS_VF = 1
+
+NUMBER_OF_COLUMNS_TOTAL = NUMBER_OF_COLUMNS*4+NUMBER_OF_COLUMNS
+NUMBER_OF_COLUMNS_TOTAL_VF = NUMBER_OF_COLUMNS_VF*2+NUMBER_OF_COLUMNS_VF
 
 def map_coordinates_x(coordinates_rectangles):
     mapx = 0
@@ -41,7 +44,7 @@ def map_coordinates_y(coordinates_rectangles):
         h=i[3] 
         y_velho_aux= [y,mapy]
         tempy = y-y0
-        if tempy > h:
+        if tempy > h and h > 15:
             y0 = y
             mapy_list.append(mapy)
             mapy += 1
@@ -62,66 +65,47 @@ while True:
     parameters =  cv2.aruco.DetectorParameters_create()
     corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
     frame_markers = cv2.aruco.drawDetectedMarkers(frame.copy(), corners, ids)
- 
     if ids is not None:
         length = len(ids)
-        if length == 4: #meter 4 se nao tiver perguntas v/F
+        if length == 6: #meter 4 se nao tiver perguntas v/F
             for i in range(len(corners)):
                 c = corners[i][0]# c type = numpy.ndarray
-                cv2.line(frame, tuple(c[0].astype('int32')), tuple(c[1].astype('int32')), (255,0,255), 5)
-                cv2.line(frame, tuple(c[1].astype('int32')), tuple(c[2].astype('int32')), (255,0,255), 5)
-                cv2.line(frame, tuple(c[2].astype('int32')), tuple(c[3].astype('int32')), (255,0,255), 5)
-                cv2.line(frame, tuple(c[3].astype('int32')), tuple(c[0].astype('int32')), (255,0,255), 5)
-                #print(c)
+                #cv2.line(frame, tuple(c[0].astype('int32')), tuple(c[1].astype('int32')), (255,0,255), 5)
+                #cv2.line(frame, tuple(c[1].astype('int32')), tuple(c[2].astype('int32')), (255,0,255), 5)
+                #cv2.line(frame, tuple(c[2].astype('int32')), tuple(c[3].astype('int32')), (255,0,255), 5)
+                #cv2.line(frame, tuple(c[3].astype('int32')), tuple(c[0].astype('int32')), (255,0,255), 5)
                 if ids[i] == 1:
-                    cv2.circle(frame, tuple(c[3].astype('int32')), 5, (255,0,0), -1)
+                    #cv2.circle(frame, tuple(c[3].astype('int32')), 5, (255,0,0), -1)
                     x1,y1 = c[3].astype('int32')
                 if ids[i] == 2:
-                    cv2.circle(frame, tuple(c[2].astype('int32')), 5, (255,0,0), -1)
+                    #cv2.circle(frame, tuple(c[2].astype('int32')), 5, (255,0,0), -1)
                     x2,y2 = c[2].astype('int32')
                 if ids[i] == 3:
-                    cv2.circle(frame, tuple(c[0].astype('int32')), 5, (255,0,0), -1)
+                    #cv2.circle(frame, tuple(c[0].astype('int32')), 5, (255,0,0), -1)
                     x3,y3 = c[0].astype('int32')
-                '''
-                if ids[i] == 4: 
-                    cv2.circle(frame, tuple(c[1].astype('int32')), 5, (255,0,0), -1)
-                    x4,y4 = c[1].astype('int32')
-                '''
+                if ids[i] == 9: 
+                    #cv2.circle(frame, tuple(c[2].astype('int32')), 5, (255,0,0), -1)
+                    x9,y9 = c[2].astype('int32')
                 if ids[i] == 5:
-                    cv2.circle(frame, tuple(c[1].astype('int32')), 5, (255,0,0), -1)
+                    #cv2.circle(frame, tuple(c[1].astype('int32')), 5, (255,0,0), -1)
                     x5,y5 = c[1].astype('int32')
-                '''
-                if ids[i] == 6:
-                    cv2.circle(frame, tuple(c[2].astype('int32')), 5, (255,0,0), -1)
-                    x6,y6 = c[2].astype('int32')
-                '''
-                #V/F
-            '''
-            cv2.line(frame, (x1,y1), (x6,y6), (0,255,0), 5)
-            cv2.line(frame, (x6,y6), (x4,y4), (0,255,0), 5)
-            cv2.line(frame, (x3,y3), (x4,y4), (0,255,0), 5)
-            cv2.line(frame, (x3,y3), (x1,y1), (0,255,0), 5)
-                
-            pts1 = np.float32([[x1,y1],[x2,y2],[x3,y3],[x4,y4],[x5,y5],[x6,y6]])
-            pts2 = np.float32([[0,0],[500,0],[0,500],[500,500], [0,500], [500,500]])
-            M = cv2.getPerspectiveTransform(pts1,pts2)
-            dst = cv2.warpPerspective(frame,M,(500,500))
-            '''
+                if ids[i] == 8:
+                    #cv2.circle(frame, tuple(c[1].astype('int32')), 5, (255,0,0), -1)
+                    x8,y8 = c[1].astype('int32')
+            
 
-            #TODO: desenhar quadrado para a grelha das perguntas VF
-
-            cv2.line(frame, (x1,y1), (x2,y2), (0,255,0), 5)
-            cv2.line(frame, (x2,y2), (x5,y5), (0,255,0), 5)
-            cv2.line(frame, (x5,y5), (x3,y3), (0,255,0), 5)
-            cv2.line(frame, (x3,y3), (x1,y1), (0,255,0), 5)
+            cv2.line(frame, (x1,y1), (x9,y9), (0,255,0), 5)
+            cv2.line(frame, (x1,y1), (x3,y3), (0,255,0), 5)
+            cv2.line(frame, (x3,y3), (x8,y8), (0,255,0), 5)
+            cv2.line(frame, (x9,y9), (x8,y8), (0,255,0), 5)
 
             #perspective correction
-            pts1 = np.float32([[x1,y1],[x2,y2],[x3,y3],[x5,y5]])
+            pts1 = np.float32([[x1,y1],[x9,y9],[x3,y3],[x8,y8]])
+            #pts1 = np.float32([[x1,y1],[x2,y2],[x3,y3],[x5,y5]])
             pts2 = np.float32([[0,0],[500,0],[0,500],[500,500]])
             M = cv2.getPerspectiveTransform(pts1,pts2)
             dst = cv2.warpPerspective(frame,M,(500,500))
             cv2.imshow('dst', dst)
-
 
             dst_final = dst
 
@@ -129,9 +113,6 @@ while True:
             lineMinWidth = 55
             gray_scale=cv2.cvtColor(dst_final,cv2.COLOR_BGR2GRAY)
             th1,img_bin = cv2.threshold(gray_scale,150,225,cv2.THRESH_BINARY)
-
-            lineWidth = 7
-            lineMinWidth = 55
             kernal1 = np.ones((lineWidth,lineWidth), np.uint8)
             kernal1h = np.ones((1,lineWidth), np.uint8)
             kernal1v = np.ones((lineWidth,1), np.uint8)
@@ -160,8 +141,7 @@ while True:
             percentage_wht=0
             list_x = [] #list with x coordinates
             list_y = [] #list with y coordinates
-            #matrix with 15 rows and 15 columns
-            matrix_questions = [[0 for x in range(NUMBER_OF_LINES+1)] for y in range(NUMBER_OF_LINES+1)]
+            matrix_questions = [[0 for x in range(NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF)] for y in range(NUMBER_OF_LINES+1)]
 
             for x,y,w,h,area in stats[2:]:
                 ss_count += 1
@@ -181,7 +161,6 @@ while True:
                             count_pixels_wht += 1
                 percentage_blk = (count_pixels_blk/count_pixels)*100
                 percentage_wht = (count_pixels_wht/count_pixels)*100
-
                 coordinates_rectangles.append([x, y, w, h, percentage_blk, percentage_wht])
            
             #sort coordinates by x and y
@@ -189,42 +168,32 @@ while True:
                 x_velho=[]
                 y_velho=[]
                 coordinates_rectangles.sort(key=lambda x: x[0])
-
                 new_x,x_velho = map_coordinates_x(coordinates_rectangles)
                 coordinates_rectangles.sort(key=lambda x: x[1])
                 new_y , y_velho= map_coordinates_y(coordinates_rectangles)
-
                 x_novo = 0
                 y_novo = 0
 
                 for i in coordinates_rectangles:
                     x = i[0]
                     y = i[1]
-
                     for x_v in x_velho:
                         if x_v[0] == x:
                             x_novo = x_v[1]
                     for y_v in y_velho:
                         if y_v[0] == y:
                             y_novo = y_v[1]
-                    
-                    #mapear x e y para valores das colunas e linhas
-
                     percentage_blk = i[4]
                     percentage_wht = i[5]
                     if percentage_blk > 15 and percentage_wht > 30: #has an x
                         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
-                        #print("x, y: ", x_novo, y_novo)
                         matrix_questions[y_novo][x_novo] = 1
                     if percentage_blk > 80: 
                         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
                 
-                cv2.imwrite("live_exam.jpg",dst_final)
-            
                 cv2.circle(frame, (10,15), 10, (0,255,0), -1)
                 cv2.imwrite("live_correction_exam.jpg",dst_final)
                 print("correction done")
-                
             
                 #remove first line from matrix
                 matrix_questions.pop(0)
@@ -236,13 +205,17 @@ while True:
                     for i in range(NUMBER_OF_COLUMNS-1):
                         r +=4
                         row.pop(r)
+                    r +=4
+                    for i in range(NUMBER_OF_COLUMNS_VF):
+                        row.pop(r)
+                        r +=2
 
                 #create new matrix with 14 rows and 12 columns adicionar + NUMBER_OF_COLUMNS_VF*2
-                matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4)] for y in range(NUMBER_OF_LINES)]
+                matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4 + NUMBER_OF_COLUMNS_VF*2)] for y in range(NUMBER_OF_LINES)]
 
                 #copy values from matrix to matrix_14_12 + NUMBER_OF_COLUMNS_VF*2
                 for i in range(NUMBER_OF_LINES):
-                    for j in range(NUMBER_OF_COLUMNS*4):
+                    for j in range(NUMBER_OF_COLUMNS*4 + NUMBER_OF_COLUMNS_VF*2):
                         matrix_questions_final[i][j] = matrix_questions[i][j]
 
                 col_min = 0
@@ -275,9 +248,10 @@ while True:
                     col_min += 4
                     col_max += 4
 
-                '''
                 i_aux = 0
-                for i in range(NUMBER_OF_COLUMNS_VF):
+                col_max = col_max-2
+
+                for k in range(NUMBER_OF_COLUMNS_VF):
                     for i in range(NUMBER_OF_LINES):
                         count_res = 0
                         for j in range(col_min, col_max):
@@ -288,14 +262,13 @@ while True:
                                 else:
                                     array_answers_vf[i_aux] = 'f'
                             elif count_res == 0:
-                                array_answers[i_aux] = '-'
+                                array_answers_vf[i_aux] = '-'
                         i_aux += 1
                         if i_aux == NUMBER_OF_QUESTIONS_VF:
                             break
                     col_min += 2
                     col_max += 2
 
-                ''' 
                 print(array_answers)
                 print(array_answers_vf)
 
@@ -303,6 +276,7 @@ while True:
                 cv2.circle(frame, (10,15), 10, (255,0,0), -1)
 
             cv2.imshow("correction", dst_final)
+
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
