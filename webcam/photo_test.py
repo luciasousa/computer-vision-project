@@ -119,6 +119,8 @@ while True:
             dst = cv2.warpPerspective(frame,M,(500,500))
             '''
 
+            #TODO: desenhar quadrado para a grelha das perguntas VF
+
             cv2.line(frame, (x1,y1), (x2,y2), (0,255,0), 5)
             cv2.line(frame, (x2,y2), (x5,y5), (0,255,0), 5)
             cv2.line(frame, (x5,y5), (x3,y3), (0,255,0), 5)
@@ -130,6 +132,8 @@ while True:
             M = cv2.getPerspectiveTransform(pts1,pts2)
             dst = cv2.warpPerspective(frame,M,(500,500))
             cv2.imshow('dst', dst)
+
+            #
             #if press 's' key, save image
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 cv2.imwrite('photo_test_image.jpg', dst)
@@ -277,11 +281,11 @@ for row in matrix:
 
 
 #create new matrix with 14 rows and 12 columns
-matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4)] for y in range(NUMBER_OF_LINES)]
+matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4 + NUMBER_OF_COLUMNS_VF*2)] for y in range(NUMBER_OF_LINES)]
 
 #copy values from matrix to matrix_14_12
-for i in range(14):
-    for j in range(12):
+for i in range(NUMBER_OF_LINES):
+    for j in range(NUMBER_OF_COLUMNS*4 + NUMBER_OF_COLUMNS_VF*2):
         matrix_questions_final[i][j] = matrix_questions[i][j]
 
 '''
@@ -320,23 +324,24 @@ for i in range(NUMBER_OF_COLUMNS):
     col_min += 4
     col_max += 4
 
-'''
+i_aux = 0
 for i in range(NUMBER_OF_COLUMNS_VF):
     for i in range(NUMBER_OF_LINES):
         count_res = 0
         for j in range(col_min, col_max):
-            if matrix_14_12[i][j] == 1:
+            if matrix_questions_final[i][j] == 1:
                 count_res = 1
-                if j
-                
+                if j%2==0:
+                    array_answers_vf[i_aux] = 'v'
+                else:
+                    array_answers_vf[i_aux] = 'f'
             elif count_res == 0:
                 array_answers[i_aux] = '-'
         i_aux += 1
-        if i_aux == NUMBER_OF_QUESTIONS:
+        if i_aux == NUMBER_OF_QUESTIONS_VF:
             break
     col_min += 2
     col_max += 2
-'''
-
 
 print(array_answers)
+print(array_answers_vf)
