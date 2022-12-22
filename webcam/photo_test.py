@@ -110,7 +110,7 @@ while True:
             #
             #if press 's' key, save image
             if cv2.waitKey(1) & 0xFF == ord('s'):
-                cv2.imwrite('photo_test_image.jpg', dst)
+                cv2.imwrite('./images/photo_test_image.jpg', dst)
                 print('image saved')
                 break
     cv2.imshow('frame', frame)
@@ -122,7 +122,7 @@ cam.release()
 cv2.destroyAllWindows()
 
 
-dst_final = cv2.imread('photo_test_image.jpg')
+dst_final = cv2.imread('./images/photo_test_image.jpg')
 
 lineWidth = 7
 lineMinWidth = 55
@@ -207,7 +207,7 @@ for i in coordinates_rectangles:
     if percentage_blk > 80: 
         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
 
-cv2.imwrite("photo_final_dst.jpg", dst_final)
+cv2.imwrite("./images/photo_final_dst.jpg", dst_final)
 
 #remove first line from matrix
 matrix_questions.pop(0)

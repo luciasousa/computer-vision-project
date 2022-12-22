@@ -192,7 +192,7 @@ while True:
                         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
                 
                 cv2.circle(frame, (10,15), 10, (0,255,0), -1)
-                cv2.imwrite("live_correction_exam.jpg",dst_final)
+                cv2.imwrite("./images/live_final_dst.jpg",dst_final)
                 print("correction done")
             
                 #remove first line from matrix

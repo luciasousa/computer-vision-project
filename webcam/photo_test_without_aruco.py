@@ -6,8 +6,8 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
-NUMBER_OF_QUESTIONS = 37
-NUMBER_OF_QUESTIONS_VF = 12
+NUMBER_OF_QUESTIONS = 42
+NUMBER_OF_QUESTIONS_VF = 14
 NUMBER_OF_LINES = 14
 NUMBER_OF_COLUMNS = 3
 NUMBER_OF_COLUMNS_VF = 1
@@ -76,37 +76,25 @@ while True:
     mask = np.zeros((gray.shape),np.uint8)
     cv2.drawContours(mask, [best_count],0,255,-1)
     cv2.drawContours(mask,[best_count],0,0,2)
-    out=np.zeros_like(gray)
-    out[mask==255] = gray[mask==255]
-    cv2.imshow('frame', frame)
-    cv2.imshow('frame', out)
-    contours, hierarchy = cv2.findContours(image=out, mode = cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
-    cv2.drawContours(frame,contours,c,(0,255,0),3)
-    print(contours)
-    cv2.imshow("frame", frame)
-    
-    #find corners of the contours
-
-    #perspective correction
-    pts1 = np.float32([[x1,y1],[x9,y9],[x3,y3],[x8,y8]])
-    #pts1 = np.float32([[x1,y1],[x2,y2],[x3,y3],[x5,y5]])
-    pts2 = np.float32([[0,0],[500,0],[0,500],[500,500]])
-    M = cv2.getPerspectiveTransform(pts1,pts2)
-    dst = cv2.warpPerspective(frame,M,(500,500))
-    cv2.imshow('dst', dst)
-
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cam.release()
-cv2.destroyAllWindows()
-'''
    
-    #
+
+
+    #perspective correction with contours
+    peri = cv2.arcLength(best_count, True)
+    approx = cv2.approxPolyDP(best_count, 0.02 * peri, True)
+    if len(approx) == 4:
+        screenCnt = approx
+        cv2.drawContours(frame, [screenCnt], -1, (0, 255, 0), 2)
+        pts1 = np.float32([screenCnt[0],screenCnt[1],screenCnt[2],screenCnt[3]])
+        pts2 = np.float32([[0,0],[0,500],[500,500],[500,0]])
+        M = cv2.getPerspectiveTransform(pts1,pts2)
+        dst = cv2.warpPerspective(frame,M,(500,500))
+        cv2.imshow('dst', dst)
+        cv2.imshow('frame', frame)
+
     #if press 's' key, save image
     if cv2.waitKey(1) & 0xFF == ord('s'):
-        cv2.imwrite('photo_test_image.jpg', dst)
+        cv2.imwrite('./images/photo_test_image_without.jpg', dst)
         print('image saved')
         break
     cv2.imshow('frame', frame)
@@ -118,7 +106,7 @@ cam.release()
 cv2.destroyAllWindows()
 
 
-dst_final = cv2.imread('photo_test_image.jpg')
+dst_final = cv2.imread('./images/photo_test_image_without.jpg')
 
 lineWidth = 7
 lineMinWidth = 55
@@ -203,7 +191,7 @@ for i in coordinates_rectangles:
     if percentage_blk > 80: 
         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
 
-cv2.imwrite("photo_final_dst.jpg", dst_final)
+cv2.imwrite("./images/photo_final_dst_without.jpg", dst_final)
 
 #remove first line from matrix
 matrix_questions.pop(0)
@@ -287,4 +275,3 @@ for k in range(NUMBER_OF_COLUMNS_VF):
 
 print(array_answers)
 print(array_answers_vf)
-'''
