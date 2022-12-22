@@ -60,7 +60,7 @@ while True:
         cv2.line(frame, (x2,y2), (x4,y4), (0,255,0), 5)
         cv2.line(frame, (x4,y4), (x3,y3), (0,255,0), 5)
         cv2.line(frame, (x3,y3), (x1,y1), (0,255,0), 5)
-
+        
         #perspective correction
         pts1 = np.float32([[x1,y1],[x2,y2],[x3,y3],[x4,y4]])
         pts2 = np.float32([[0,0],[500,0],[0,500],[500,500]])
