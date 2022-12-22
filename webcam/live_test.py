@@ -15,6 +15,9 @@ NUMBER_OF_COLUMNS_VF = 1
 NUMBER_OF_COLUMNS_TOTAL = NUMBER_OF_COLUMNS*4+NUMBER_OF_COLUMNS
 NUMBER_OF_COLUMNS_TOTAL_VF = NUMBER_OF_COLUMNS_VF*2+NUMBER_OF_COLUMNS_VF
 
+max_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES + 10
+min_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES - 10
+
 def map_coordinates_x(coordinates_rectangles):
     mapx = 0
     mapx_list = []
@@ -25,7 +28,7 @@ def map_coordinates_x(coordinates_rectangles):
         w=i[2]
         tempx = x-x0
         x_velho_aux=[x,mapx]
-        if tempx > w and w > 15:
+        if tempx > w and w > w/2:
             x0 = x
             mapx_list.append(mapx)
             mapx += 1
@@ -44,7 +47,7 @@ def map_coordinates_y(coordinates_rectangles):
         h=i[3] 
         y_velho_aux= [y,mapy]
         tempy = y-y0
-        if tempy > h and h > 15:
+        if tempy > h and h > h/2:
             y0 = y
             mapy_list.append(mapy)
             mapy += 1
@@ -164,7 +167,7 @@ while True:
                 coordinates_rectangles.append([x, y, w, h, percentage_blk, percentage_wht])
            
             #sort coordinates by x and y
-            if count_rect >220 or count_rect <230: #225
+            if count_rect > min_limit or count_rect < max_limit: #225
                 x_velho=[]
                 y_velho=[]
                 coordinates_rectangles.sort(key=lambda x: x[0])

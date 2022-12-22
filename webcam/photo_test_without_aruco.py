@@ -25,7 +25,7 @@ def map_coordinates_x(coordinates_rectangles):
         w=i[2]
         tempx = x-x0
         x_velho_aux=[x,mapx]
-        if tempx > w and w > 15:
+        if tempx > w and w > w/2:
             x0 = x
             mapx_list.append(mapx)
             mapx += 1
@@ -43,7 +43,7 @@ def map_coordinates_y(coordinates_rectangles):
         h=i[3] 
         y_velho_aux= [y,mapy]
         tempy = y-y0
-        if tempy > h and h > 15:
+        if tempy > h and h > h/2:
             y0 = y
             mapy_list.append(mapy)
             mapy += 1
