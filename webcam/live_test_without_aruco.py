@@ -1,4 +1,5 @@
-#programa que tira foto ao teste e depois faz o processamento
+#program that finds the bigger area (grid), find 'x' and get the sequence of answers and save the last frame
+
 import argparse
 import imutils
 import cv2
@@ -6,18 +7,20 @@ import sys
 from matplotlib import pyplot as plt
 import numpy as np
 
+#define variables
 NUMBER_OF_QUESTIONS = 42
 NUMBER_OF_QUESTIONS_VF = 14
 NUMBER_OF_LINES = 14
 NUMBER_OF_COLUMNS = 3
 NUMBER_OF_COLUMNS_VF = 1
-
 NUMBER_OF_COLUMNS_TOTAL = NUMBER_OF_COLUMNS*4+NUMBER_OF_COLUMNS
 NUMBER_OF_COLUMNS_TOTAL_VF = NUMBER_OF_COLUMNS_VF*2+NUMBER_OF_COLUMNS_VF
 
+#define the maximum and minimum number of boxes in the grid to be considered a valid grid
 max_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES + 10
 min_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES - 10
 
+#map x coordinates of boxes in the grid to the matrix lines
 def map_coordinates_x(coordinates_rectangles):
     mapx = 0
     mapx_list = []
@@ -36,7 +39,7 @@ def map_coordinates_x(coordinates_rectangles):
         x_velho.append(x_velho_aux)
     return mapx_list,x_velho
 
-
+#map y coordinates of boxes in the grid to the matrix columns
 def map_coordinates_y(coordinates_rectangles):
     mapy = 0
     mapy_list = []
@@ -55,7 +58,7 @@ def map_coordinates_y(coordinates_rectangles):
         y_velho.append(y_velho_aux)
     return mapy_list, y_velho
 
-
+#start capturing video
 cam = cv2.VideoCapture(0)
 
 while True:
@@ -65,11 +68,11 @@ while True:
         break
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray,(5,5),0)
-
     th1 = cv2.adaptiveThreshold(blur,255,1,1,11,2)
     contours, hierarchy = cv2.findContours(image=th1, mode = cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
     max_area = 0
     c=0
+    #find the biggest area
     for i in contours:
         area = cv2.contourArea(i)
         if area>1000:
@@ -94,9 +97,8 @@ while True:
         cv2.imshow('dst', dst)
         cv2.imshow('frame', frame)
 
-
+        #find the boxes in the grid finding the vertical and horizontal lines
         dst_final = dst
-
         lineWidth = 7
         lineMinWidth = 55
         gray_scale=cv2.cvtColor(dst_final,cv2.COLOR_BGR2GRAY)
@@ -104,11 +106,9 @@ while True:
         kernal1 = np.ones((lineWidth,lineWidth), np.uint8)
         kernal1h = np.ones((1,lineWidth), np.uint8)
         kernal1v = np.ones((lineWidth,1), np.uint8)
-
         kernal6 = np.ones((lineMinWidth,lineMinWidth), np.uint8)
         kernal6h = np.ones((1,lineMinWidth), np.uint8)
         kernal6v = np.ones((lineMinWidth,1), np.uint8)
-
         img_bin_h = cv2.morphologyEx(~img_bin, cv2.MORPH_CLOSE, kernal1h) # bridge small gap in horizonntal lines
         img_bin_h = cv2.morphologyEx(img_bin_h, cv2.MORPH_OPEN, kernal6h) # kep ony horiz lines by eroding everything else in hor direction
         img_bin_v = cv2.morphologyEx(~img_bin, cv2.MORPH_CLOSE, kernal1v)  # bridge small gap in vert lines
@@ -121,16 +121,15 @@ while True:
         img_bin_final = fix(fix(img_bin_h)|fix(img_bin_v))
         finalKernel = np.ones((5,5), np.uint8)
         img_bin_final=cv2.dilate(img_bin_final,finalKernel,iterations=1)
+        #find coordinates of boxes
         coordinates_rectangles=[]
         ret, labels, stats,centroids = cv2.connectedComponentsWithStats(~img_bin_final, connectivity=8, ltype=cv2.CV_32S)
         count_rect = 0
         ss_count = 0
         percentage_blk=0
         percentage_wht=0
-        list_x = [] #list with x coordinates
-        list_y = [] #list with y coordinates
         matrix_questions = [[0 for x in range(NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF)] for y in range(NUMBER_OF_LINES+1)]
-
+        #read pixels in each rectangle
         for x,y,w,h,area in stats[2:]:
             ss_count += 1
             count_rect += 1
@@ -147,22 +146,25 @@ while True:
                         count_pixels_blk += 1
                     else:
                         count_pixels_wht += 1
+            #calculate percentage of black and white pixels
             percentage_blk = (count_pixels_blk/count_pixels)*100
             percentage_wht = (count_pixels_wht/count_pixels)*100
             coordinates_rectangles.append([x, y, w, h, percentage_blk, percentage_wht])
-        
-        #sort coordinates by x and y
-        #sort coordinates by x and y
+        #if grid is valid then map the coordinates of the boxes
         if count_rect > min_limit or count_rect < max_limit: #225
             x_velho=[]
             y_velho=[]
+            #sort x coordinates
             coordinates_rectangles.sort(key=lambda x: x[0])
+            #map the coordinates
             new_x,x_velho = map_coordinates_x(coordinates_rectangles)
+            #sort y coordinates
             coordinates_rectangles.sort(key=lambda x: x[1])
+            #map the coordinates
             new_y , y_velho= map_coordinates_y(coordinates_rectangles)
             x_novo = 0
             y_novo = 0
-
+            #read the boxes and check if they have an x
             for i in coordinates_rectangles:
                 x = i[0]
                 y = i[1]
@@ -174,12 +176,16 @@ while True:
                         y_novo = y_v[1]
                 percentage_blk = i[4]
                 percentage_wht = i[5]
-                if percentage_blk > 15 and percentage_wht > 30: #has an x
+                #check if box has an x
+                if percentage_blk > 15 and percentage_wht > 30:
                     cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
+                    #put 1 in matrix
                     matrix_questions[y_novo][x_novo] = 1
+                #check if box is filled
                 if percentage_blk > 80: 
                     cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
             
+            #save frame
             cv2.imwrite("./images/live_exam_without.jpg",dst_final)
             cv2.circle(frame, (10,15), 10, (0,255,0), -1)
             cv2.imwrite("./images/live_correction_exam_without.jpg",dst_final)
@@ -188,8 +194,8 @@ while True:
             #remove first line from matrix
             matrix_questions.pop(0)
 
-            #remove first column from matrix
-            for row in matrix_questions:
+            #remove columns from matrix that are not needed 
+            for row in matrix_questions: 
                 r = 0
                 row.pop(r)
                 for i in range(NUMBER_OF_COLUMNS-1):
@@ -200,25 +206,21 @@ while True:
                     row.pop(r)
                     r +=2
 
-            #create new matrix with 14 rows and 12 columns adicionar + NUMBER_OF_COLUMNS_VF*2
+            #create new matrix with
             matrix_questions_final = [[0 for x in range(NUMBER_OF_COLUMNS*4 + NUMBER_OF_COLUMNS_VF*2)] for y in range(NUMBER_OF_LINES)]
 
-            #copy values from matrix to matrix_14_12 + NUMBER_OF_COLUMNS_VF*2
+            #copy values from matrix to new matrix
             for i in range(NUMBER_OF_LINES):
                 for j in range(NUMBER_OF_COLUMNS*4 + NUMBER_OF_COLUMNS_VF*2):
                     matrix_questions_final[i][j] = matrix_questions[i][j]
 
             col_min = 0
             col_max = 4
-
             count_res = 0
-            '''
-            for row in matrix_questions:
-                print(row)
-            '''
             array_answers = [0 for x in range(NUMBER_OF_QUESTIONS)]
             array_answers_vf = [0 for x in range(NUMBER_OF_QUESTIONS_VF)]
             i_aux = 0
+            #find the answer of each question
             for i in range(NUMBER_OF_COLUMNS):
                 for i in range(NUMBER_OF_LINES):
                     count_res = 0
@@ -266,11 +268,11 @@ while True:
             print(array_answers_vf)
 
         else:
+            #draw a blue circle if the grid is not valid
             cv2.circle(frame, (10,15), 10, (255,0,0), -1)
-
         cv2.imshow("correction", dst_final)
-
     cv2.imshow('frame', frame)
+    #press q to exit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
