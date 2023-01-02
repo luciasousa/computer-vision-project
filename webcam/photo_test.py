@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 #define variables
-NUMBER_OF_QUESTIONS = 37
-NUMBER_OF_QUESTIONS_VF = 12
+NUMBER_OF_QUESTIONS = 42
+NUMBER_OF_QUESTIONS_VF = 14
 NUMBER_OF_LINES = 14
 NUMBER_OF_COLUMNS = 3
 NUMBER_OF_COLUMNS_VF = 1
@@ -196,8 +196,9 @@ for i in coordinates_rectangles:
     #if the percentage of black pixels is greater than 15% and the percentage of white pixels is greater than 30% then it has an x
     if percentage_blk > 15 and percentage_wht > 30:
         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
-        #put 1 in the matrix position
-        matrix_questions[y_novo][x_novo] = 1
+        if y_novo < NUMBER_OF_LINES and x_novo < NUMBER_OF_COLUMNS_TOTAL:
+            #put 1 in the matrix position
+            matrix_questions[y_novo][x_novo] = 1
     #if the percentage of black pixels is greater than 80% then it is filled
     if percentage_blk > 80: 
         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 

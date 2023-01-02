@@ -192,7 +192,8 @@ for i in coordinates_rectangles:
     if percentage_blk > 15 and percentage_wht > 30:
         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
         #put 1 in the matrix
-        matrix_questions[y_novo][x_novo] = 1
+        if y_novo < NUMBER_OF_LINES and x_novo < NUMBER_OF_COLUMNS_TOTAL:
+            matrix_questions[y_novo][x_novo] = 1
     #if the percentage of black pixels is greater than 80% then it is filled
     if percentage_blk > 80: 
         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 

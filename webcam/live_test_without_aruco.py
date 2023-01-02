@@ -17,8 +17,8 @@ NUMBER_OF_COLUMNS_TOTAL = NUMBER_OF_COLUMNS*4+NUMBER_OF_COLUMNS
 NUMBER_OF_COLUMNS_TOTAL_VF = NUMBER_OF_COLUMNS_VF*2+NUMBER_OF_COLUMNS_VF
 
 #define the maximum and minimum number of boxes in the grid to be considered a valid grid
-max_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES + 10
-min_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES - 10
+max_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES + 20
+min_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES - 20
 
 #map x coordinates of boxes in the grid to the matrix lines
 def map_coordinates_x(coordinates_rectangles):
@@ -151,7 +151,8 @@ while True:
             percentage_wht = (count_pixels_wht/count_pixels)*100
             coordinates_rectangles.append([x, y, w, h, percentage_blk, percentage_wht])
         #if grid is valid then map the coordinates of the boxes
-        if count_rect > min_limit or count_rect < max_limit: #225
+        if count_rect > min_limit and count_rect < max_limit: #225
+            print(count_rect, min_limit, max_limit)
             x_velho=[]
             y_velho=[]
             #sort x coordinates
@@ -180,7 +181,8 @@ while True:
                 if percentage_blk > 15 and percentage_wht > 30:
                     cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
                     #put 1 in matrix
-                    matrix_questions[y_novo][x_novo] = 1
+                    if y_novo < NUMBER_OF_LINES and x_novo < NUMBER_OF_COLUMNS_TOTAL:
+                        matrix_questions[y_novo][x_novo] = 1
                 #check if box is filled
                 if percentage_blk > 80: 
                     cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 

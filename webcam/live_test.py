@@ -18,8 +18,8 @@ NUMBER_OF_COLUMNS_TOTAL_VF = NUMBER_OF_COLUMNS_VF*2+NUMBER_OF_COLUMNS_VF
 NUMBER_OF_ARUCO_MARKERS = 6
 
 #define the maximum and minimum number of boxes in the grid to be considered a valid grid
-max_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES + 10
-min_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES - 10
+max_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES + 20
+min_limit = (NUMBER_OF_COLUMNS_TOTAL+NUMBER_OF_COLUMNS_TOTAL_VF) * NUMBER_OF_LINES - 20
 
 #map x coordinates of boxes in the grid to the matrix lines
 def map_coordinates_x(coordinates_rectangles):
@@ -187,7 +187,8 @@ while True:
                     #if the box has more than 15% of black pixels and more than 30% of white pixels, it is a x
                     if percentage_blk > 15 and percentage_wht > 30: 
                         cv2.circle(dst_final, (x, y), 5, (255,0,0), -1)
-                        matrix_questions[y_novo][x_novo] = 1
+                        if y_novo < NUMBER_OF_LINES and x_novo < NUMBER_OF_COLUMNS_TOTAL:
+                            matrix_questions[y_novo][x_novo] = 1
                     #if the box has more than 80% of black pixels, it is filled
                     if percentage_blk > 80: 
                         cv2.circle(dst_final, (x, y), 5, (0,0,255), -1) 
